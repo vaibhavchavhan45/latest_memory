@@ -1,0 +1,91 @@
+// UI JUMP TO VIDEO
+I am building a UI for a YouTube RAG-based Q&A system.
+
+Backend response contains:
+1. An AI-generated answer (string)
+2. An array of timestamps, where each timestamp represents a different part of the video used to generate the answer.
+
+Each timestamp object looks like:
+{
+  "start_time": number (seconds),
+  "end_time": number (seconds)
+}
+
+UI Requirements:
+
+1. Display the AI answer normally as text.
+2. Show ONE main button labeled: "Jump to video".
+3. When the user clicks this button, open a small dropdown / popover / modal (UI choice is yours).
+4. Inside this dropdown, list ALL timestamps (converted to HH:MM:SS format).
+5. Each timestamp should be clickable.
+6. When a timestamp is clicked, open the YouTube video at that exact start_time using:
+   https://www.youtube.com/watch?v=VIDEO_ID&t=START_TIME
+7. Do NOT auto-jump the user to any timestamp.
+8. Do NOT merge or average timestamps.
+9. The user must explicitly choose which timestamp to jump to.
+10. The UI should be simple, clean, and user-friendly.
+
+Focus on good UX and clarity.
+
+
+==================================
+Backend already returns:
+- Clean AI answer text
+- Raw timestamps in seconds (start_time, end_time)
+
+Frontend expectations:
+1. Display the answer text as-is.
+2. Convert timestamp seconds to HH:MM:SS on frontend.
+3. Show ONE button: "Jump to video".
+4. On click, open a dropdown / popover listing ALL timestamps.
+5. Each timestamp must be clickable.
+6. On click, open YouTube video at that exact timestamp.
+7. Do not auto-jump or merge timestamps.
+8. Backend formatting logic should NOT be repeated on backend; only frontend handles display formatting.
+
+======================================
+State management
+❌ No timeout for stuck processing
+❌ No retry mechanism for failures
+❌ No progress tracking (user doesn't know how long)
+❌ No race condition handling (multiple users same video)
+❌ No cleanup for old/failed videos
+
+============================================
+✅ OPTION 1 — Frontend polling (MOST COMMON)
+
+Frontend does:
+Call /query
+If response = PROCESSING
+Wait 3–5 seconds
+Call /query again automatically
+
+
+
+
+
+
+=================================================
+SQL querying :
+
+sqlite3 video_state.db
+
+UPDATE video_states
+SET status = 'FAILED',
+    error = 'testing auto repair'
+WHERE video_id = 'EV7WhVT270Q';
+
+SELECT video_id, status, error, languages
+FROM video_states
+WHERE video_id = 'Z3D2UmAesN4';
+
+.quit
+==========================================
+
+video Id's
+1IxG7ywSNXk
+7ARBJQn6QkM
+EV7WhVT270Q
+gbOdkaQdD94
+t260757b_vU
+Z3D2UmAesN4

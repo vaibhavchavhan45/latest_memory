@@ -1,0 +1,328 @@
+CODEBASE CONTEXT — YouTube RAG Backend (Node + Python)
+1️⃣ Project Identity
+
+Project Type
+YouTube Question-Answering system using RAG (Retrieval Augmented Generation).
+
+What it does
+
+Takes a YouTube URL + user question
+
+Extracts transcript
+
+Chunks + embeds transcript
+
+Stores embeddings per video
+
+Answers questions strictly from video content
+
+Returns timestamps for answers
+
+Manages video lifecycle with retries & auto-repair
+
+Maintains per-video chat memory with summarization
+
+Tech Stack
+
+Node.js (Express) → API gateway / orchestration
+
+Python (FastAPI) → Core RAG engine
+
+LangChain + Chroma
+
+LLMs via Groq (OpenAI-compatible)
+
+Embeddings (currently Gemini, designed to be swappable)
+
+SQLAlchemy + DB for state & chat memory
+
+2️⃣ High-Level Architecture
+Client
+  │
+  ▼
+Node.js API
+  │
+  ▼
+Python FastAPI
+  │
+  ├─ Video State Gate
+  │
+  ├─ Background Video Processing
+  │     ├─ Transcript Fetch
+  │     ├─ Chunking
+  │     ├─ Embeddings
+  │     └─ Vector Store (per video)
+  │
+  └─ RAG Query Flow
+        ├─ Retriever (MMR)
+        ├─ Deduplication
+        ├─ Re-ranking
+        ├─ Token limiting
+        ├─ Formatting with timestamps
+        └─ LLM Answer
+
+3️⃣ Directory Tree (Condensed)
+backend/                 # Node.js
+├── index.js
+├── routes/
+│   └── query.route.js
+└── utils/
+    ├── youtubeUrl.utils.js
+    └── languageDetection.utils.js
+
+python-backend/
+├── main.py
+├── config.py
+├── routes/
+│   ├── ask_query_route.py
+│   ├── ingest_route.py
+│   └── status_route.py
+├── services/
+│   ├── core_rag/
+│   ├── application_services/
+│   ├── video_repair/
+│   └── memory/
+├── db/
+│   ├── database.py
+│   ├── models.py
+│   └── chat_memory_schema.py
+└── vector_store/
+
+4️⃣ Node.js Backend Responsibilities
+query.route.js
+
+Validates input
+
+Extracts videoId
+
+Detects video language
+
+Forwards request to Python /query
+
+youtubeUrl.utils.js
+
+Safely extracts YouTube video ID
+
+Supports watch, shorts, embed, youtu.be
+
+languageDetection.utils.js
+
+Scrapes YouTube HTML
+
+Extracts languageCode
+
+Defaults to "en"
+
+5️⃣ Python Routes Responsibilities
+/query
+
+Entry point for asking questions
+
+Delegates to state handler
+
+Executes RAG only when video is READY
+
+/process-video
+
+Manual ingest endpoint
+
+Pulls FAILED videos and reprocesses them
+
+/video-status/{video_id}
+
+Used by frontend polling
+
+Returns NOT_FOUND | PROCESSING | READY | FAILED
+
+6️⃣ Video Lifecycle & State Machine
+
+States
+
+NOT_FOUND → PROCESSING → READY
+                    ↘
+                     FAILED → retry (max 2) → permanent FAILED
+
+
+Stored in DB
+
+video_id
+
+status
+
+languages
+
+error
+
+retry_count
+
+7️⃣ Core RAG Pipeline (core_rag)
+Transcript
+
+Uses youtube_transcript_api
+
+Language-aware
+
+Throws explicit errors
+
+Chunking
+
+Adaptive chunk size based on transcript length
+
+Preserves timestamps per chunk
+
+Embeddings
+
+Central factory (create_embeddings)
+
+Designed to swap providers (OpenAI, Gemini, Cohere, Voyage, etc.)
+
+Vector Store
+
+One Chroma index per video
+
+Path: vector_store/{videoId}
+
+Skip processing if embeddings already exist
+
+Retrieval
+
+MMR retriever
+
+fetch_k = 12, k = 6
+
+Filters
+
+Deduplicate repeated chunks
+
+Enforce max context size
+
+Re-ranking
+
+CrossEncoder (ms-marco-MiniLM)
+
+Improves relevance before LLM
+
+Formatting
+
+Injects [start_time - end_time] into context
+
+Returns docs for timestamp extraction
+
+Prompt Rules
+
+Answer ONLY from transcript
+
+No hallucination
+
+No meta commentary
+
+Polite, professional, concise
+
+8️⃣ Application Services (Orchestration Layer)
+video_processing_service
+
+Full ingestion pipeline
+
+Sets state → PROCESSING / READY / FAILED
+
+query_state_handler_service
+
+Gatekeeper before RAG
+
+Handles retries
+
+Schedules background processing
+
+query_rag_executor_service
+
+Validates question
+
+Loads chat memory
+
+Executes RAG chain
+
+Formats final response with timestamps
+
+response_formatter_service
+
+Cleans LLM output
+
+Formats timestamps (frontend-friendly)
+
+9️⃣ Chat Memory System
+
+Stored per (user + video)
+
+Components
+
+Repository → DB persistence
+
+Manager → orchestration
+
+Formatter → readable history
+
+Summarizer → compress history when large
+
+Token estimator → heuristic guardrails
+
+Behavior
+
+Summarizes when token threshold crossed
+
+Rejects queries if chat is too long
+
+Preserves essential context only
+
+🔁 Auto-Repair System
+
+Background scheduler runs every 30 minutes
+
+Picks FAILED videos
+
+Marks PROCESSING
+
+Re-runs ingestion
+
+Max retry = 2
+
+🔐 Config Philosophy
+
+config.py is environment-driven
+
+.env is never shared
+
+Supports multiple LLM / embedding providers
+
+⚠️ Important Invariants (Rules)
+
+One video = one vector store
+
+Never answer without READY state
+
+Never hallucinate beyond transcript
+
+Non-commented code = production truth
+
+Node = gateway, Python = intelligence
+
+Frontend polls state, not blocks
+
+🧠 How to Use This Context in Future Chats
+
+In a new chat, paste this entire block and say:
+
+“Use this as full backend context.”
+
+Then ask:
+
+“Review my RAG design”
+
+“Help me refactor embeddings”
+
+“Add multi-user support”
+
+“Optimize retrieval”
+
+“Design frontend contract”
+
+No re-sharing needed.
