@@ -7,6 +7,7 @@ function ChatMessages({ messages = [], loading = false, scrollContainerRef }) {
   useEffect(() => {
     const lastMsg = messages[messages.length - 1];
     if (!lastMsg || lastMsg.role !== "user") return;
+    if (messages.filter(m => m.role === "user").length <= 1) return;
 
     if (lastUserRef.current && scrollContainerRef?.current) {
       const container = scrollContainerRef.current;
@@ -28,7 +29,7 @@ function ChatMessages({ messages = [], loading = false, scrollContainerRef }) {
   }, [messages.length]);
 
   return (
-    <div className="space-y-5 pt-10">
+    <div className="space-y-5 pt-4">
       {messages.map((msg, index) => {
         const isUser = msg.role === "user";
         const isLastUser = index === lastUserIndex;

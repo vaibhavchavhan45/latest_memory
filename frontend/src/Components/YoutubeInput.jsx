@@ -13,7 +13,8 @@ function YoutubeInput({ value, onChange }) {
         rounded-xl
         bg-[#2f2f2f]
         border border-white/10
-        text-[#e5e5e5]
+        text-blue-400
+        caret-white
         placeholder-[#9aa0a6]
         outline-none
         transition-all duration-200

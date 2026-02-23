@@ -61,7 +61,7 @@ function QuestionInput({ value, onChange, onAsk, mode, youtubeUrl, loading, inpu
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           disabled={loading}
-          className="w-full resize-none overflow-hidden px-4 py-3 min-h-[48px] leading-[24px] rounded-xl bg-[#2f2f2f] border border-white/10 text-white outline-none"
+          className="w-full resize-none overflow-hidden px-4 py-3 min-h-[48px] leading-[24px] rounded-xl bg-[#2f2f2f] border border-white/10 text-white placeholder-gray-400 focus:placeholder-gray-200 outline-none"
         />
 
         <button
@@ -89,7 +89,7 @@ function QuestionInput({ value, onChange, onAsk, mode, youtubeUrl, loading, inpu
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         disabled={loading}
-        className={`w-full resize-none overflow-hidden min-h-[48px] leading-[24px] bg-[#2f2f2f] border border-white/10 text-white outline-none px-4 py-3 pr-16 ${
+        className={`w-full resize-none overflow-hidden min-h-[48px] leading-[24px] bg-[#2f2f2f] border border-white/10 text-white placeholder-gray-400 focus:placeholder-gray-200 outline-none px-4 py-3 pr-16 ${
           isMultilineInput ? "rounded-xl" : "rounded-full"
         }`}
       />
